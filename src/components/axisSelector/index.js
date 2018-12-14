@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 
+import Histogram from '../histogram'
 import './axisSelector.sass';
 
 const AxisSelector = (props) => {
@@ -11,7 +12,7 @@ const AxisSelector = (props) => {
   }))
 
   return (
-    <div className="AxisSelector__Container">
+    <div className="AxisSelector">
       <h4>{props.title}</h4>
       <Select 
         className="AxisSelector__Dropdown"
@@ -20,6 +21,7 @@ const AxisSelector = (props) => {
         onChange={(e) => props.update(e,props.axis)}
       />
       <div className={"AxisSelector__" + props.axis + "Histogram AxisSelector__Histogram"} />
+      <Histogram axis={props.axis} value={props.value} data={data} />
     </div>
   )
 }
