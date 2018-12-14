@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 
-
+import AxisSelector from './components/axisSelector.js'
 import csvData from './assets/phl_hec_all_confirmed.csv'
 import './App.sass';
 
@@ -32,10 +32,11 @@ class App extends Component {
       })
       return row
     }).then(result => {
+      console.log('result', result.columns.indexOf('P. Omega (deg)'))
       this.setState({
         columns: result.columns,
         data: result,
-        xSelector: result.columns[12],
+        xSelector: result.columns[32],
         ySelector: result.columns[11]
       })
     })
@@ -43,37 +44,58 @@ class App extends Component {
 
   componentDidMount() {
     this.renderPlotGraph()
+    this.renderHistogram('x')
+    this.renderHistogram('y')
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.data !== this.state.data) {
+    d3.selectAll("svg").remove()
+    if (prevState.xSelector !== this.state.xSelector || 
+      prevState.ySelector !== this.state.ySelector ) {
       this.renderPlotGraph()
       this.renderHistogram('x')
       this.renderHistogram('y')
-    }
-    if (prevState.xSelector !== this.state.xSelector) {
-      this.renderHistogram('x')
-    } else
-    if (prevState.ySelector !== this.state.ySelector) {
-      this.renderHistogram('y')
-    }
+    } 
   }
 
   renderHistogram = (selector) => {
     const { data, xSelector, ySelector } = this.state
-    // const axis = selector === 'x' ? "App__XAxisHistogram" : "App__YAxisHistogram"
-    const svg = d3.select(".App__XAxisHistogram").attr("width", 300).attr("height", 100)
+    let targetClass, axisSelection
+
+    // Histogram selector
+    if (selector === "x") {
+      targetClass = ".AxisSelector__xHistogram"
+      axisSelection = xSelector
+    } else
+    if (selector === "y") {
+      targetClass = ".AxisSelector__yHistogram"
+      axisSelection = ySelector
+    }
+
+    // CSS data for D3
     const height = 100
-    const width = 300
+    const width = d3.select(targetClass).node().getBoundingClientRect().width -100
     const margin = ({top: 20, right: 20, bottom: 30, left: 40})
-    const dataArr = data.map(obj => obj[xSelector])
-    
+
+    // Create D3 template
+    const svg = d3.select(targetClass).append("svg").classed("AxisSelector__Svg", true).attr('width', width).attr('height', height)
+
+    // Filter Data array
+    const dataArr = data.map(obj => obj[axisSelection])
+
+    // X-axis Linear Scale
     const x = d3.scaleLinear()
       .domain(d3.extent(dataArr)).nice()
       .range([margin.left, width - margin.right])
     
+    const bins = d3.histogram()
+      .domain(x.domain())
+      .thresholds(x.ticks(20))
+    (dataArr)
+
+    // Y-axis Linear Scale
     const y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d[xSelector])]).nice()
+      .domain([0, d3.max(bins, d => d.length)]).nice()
       .range([height - margin.bottom, margin.top])
     
     const xAxis = g => g
@@ -83,16 +105,10 @@ class App extends Component {
     const yAxis = g => g
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(y))
-    
-    const bins = d3.histogram()
-      .domain(x.domain())
-      .thresholds(x.ticks(10))
-    (dataArr)
-    
+
+    // Append nodes to DOM
     svg.append("g")
       .call(xAxis);
-
-
     svg.append("g")
         .attr("fill", "steelblue")
       .selectAll("rect")
@@ -106,20 +122,22 @@ class App extends Component {
 
   renderPlotGraph = () => {
     const { data, xSelector, ySelector } = this.state
+
+    // CSS data for D3
     const height = 300
-    const width = 700
-
-    // Appends SVG to target ".App__PlotGraph"
-    const svg = d3.select(".App__PlotGraph").attr("width", 700).attr("height", 300);
-
+    const width = d3.select(".App__PlotGraph").node().getBoundingClientRect().width
     const margin = ({top: 20, right: 30, bottom: 30, left: 40})
 
-    // linear scale
+    // Append SVG to target
+    const svg = d3.select(".App__PlotGraph").append("svg").attr("width", width).attr("height", height);
+
+
+    // x-axis linear scale
     const x = d3.scaleLinear()
       .domain(d3.extent(data, d => d[xSelector]))
       .range([margin.left, width - margin.right])
     
-    // linear scale
+    // y-axis linear scale
     const y = d3.scaleLinear()
       .domain(d3.extent(data, d => d[ySelector])).nice()
       .range([height - margin.bottom, margin.top])
@@ -147,22 +165,26 @@ class App extends Component {
         .attr("cy", d => y(d[ySelector]))
         .attr("r", 2);
   }
+
+  updateAxisSelection = (e, axis) => {
+    if (axis === 'x') this.setState({ xSelector: e.value })
+    if (axis === 'y') this.setState({ ySelector: e.value })
+  }
   
   render() {
+    const { columns, xSelector, ySelector } = this.state
     return (
       <div className="App">
         <h1>Exoplanet Data Explorer</h1>
+        <div className="App__AxisSelectionContainer">
+          <AxisSelector columns={columns} update={this.updateAxisSelection} axis='x' title='X-Axis' value={xSelector} />
+          <AxisSelector columns={columns} update={this.updateAxisSelection} axis='y' title='Y-Axis' value={ySelector} />
+        </div>
         <div className="App__MainContent">
           <h3 className="App__GraphTitle">
             {this.state.xSelector} vs {this.state.ySelector}
           </h3>
-          <div>
-            x-axis histogram
-            <svg className="App__XAxisHistogram" />
-            {/* y-axis histogram
-            <svg className="App__YAxisHistogram" /> */}
-          </div>
-          <svg className="App__PlotGraph" />
+          <div className="App__PlotGraph" />
         </div>
       </div>
     );
