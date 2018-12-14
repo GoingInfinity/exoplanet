@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3'; 
 
@@ -26,8 +26,7 @@ const Histogram = (props) => {
     
     const bins = d3.histogram()
       .domain(x.domain())
-      .thresholds(x.ticks(20))
-    (dataArr)
+      .thresholds(x.ticks(20))(dataArr)
 
     // Y-axis Linear Scale
     const y = d3.scaleLinear()
@@ -38,11 +37,6 @@ const Histogram = (props) => {
     const xAxis = g => g
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(x).tickSizeOuter(0))
-    
-    // Y-axis Positioning
-    const yAxis = g => g
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(d3.axisLeft(y))
 
     // Append d3 data to DOM
     svg.selectAll("g").remove()
