@@ -5,29 +5,19 @@ import * as d3 from 'd3';
 import './histogram.sass'
 
 const Histogram = (props) => {
+  const { data, value, axis } = props
   const renderHistogram = () => {
-    const { data, value, axis } = props
-    let targetClass, axisSelection
-
-    // Histogram selector
-    if (selector === "x") {
-      targetClass = ".AxisSelector__xHistogram"
-      axisSelection = xSelector
-    } else
-    if (selector === "y") {
-      targetClass = ".AxisSelector__yHistogram"
-      axisSelection = ySelector
-    }
     // CSS data for D3
     const height = 100
-    const width = d3.select(targetClass).node().getBoundingClientRect().width
+    const width = document.querySelector('.Histogram') ? 
+    document.querySelector('.Histogram').clientWidth * .9 : 250
     const margin = ({top: 20, right: 20, bottom: 30, left: 40})
 
     // D3 template
-    const svg = d3.select(targetClass).classed("AxisSelector__Svg", true).attr('width', width).attr('height', height)
+    const svg = d3.select(`.Histogram__Svg--${axis}`).attr('width', width).attr('height', height)
 
     // Filtered Data array for histogram
-    const dataArr = data.map(obj => obj[axisSelection])
+    const dataArr = data.map(obj => obj[value])
 
     // X-axis Linear Scale
     const x = d3.scaleLinear()
@@ -55,6 +45,7 @@ const Histogram = (props) => {
       .call(d3.axisLeft(y))
 
     // Append d3 data to DOM
+    svg.selectAll("g").remove()
     svg.append("g")
       .call(xAxis);
     svg.append("g")
@@ -71,13 +62,15 @@ const Histogram = (props) => {
   return (
     <div className="Histogram">
       {renderHistogram()}
-      <svg className={"Histogram__Svg--"} />
+      <svg className={"Histogram__Svg--"+axis} />
     </div>
   )
 }
 
 Histogram.propTypes = {
-
+  axis: PropTypes.string,
+  value: PropTypes.string,
+  data: PropTypes.array,
 };
 
 export default Histogram;

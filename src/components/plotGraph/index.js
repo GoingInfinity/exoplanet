@@ -10,7 +10,7 @@ const PlotGraph = (props) => {
 
     // CSS data for D3
     const height = 300
-    const width = document.body.clientWidth
+    const width = document.body.clientWidth * .95
     const margin = ({top: 20, right: 30, bottom: 30, left: 40})
 
     // Append SVG to target

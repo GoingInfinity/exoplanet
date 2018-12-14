@@ -21,7 +21,7 @@ const AxisSelector = (props) => {
         onChange={(e) => props.update(e,props.axis)}
       />
       <div className={"AxisSelector__" + props.axis + "Histogram AxisSelector__Histogram"} />
-      <Histogram axis={props.axis} value={props.value} data={data} />
+      <Histogram axis={props.axis} value={props.value} data={props.data} />
     </div>
   )
 }
