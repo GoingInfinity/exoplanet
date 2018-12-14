@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 
-import AxisSelector from './components/axisSelector.js'
+import AxisSelector from './components/axisSelector'
 import csvData from './assets/phl_hec_all_confirmed.csv'
 import './App.sass';
+import PlotGraph from './components/plotGraph';
 
 class App extends Component {
   constructor(props) {
@@ -46,18 +47,18 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.renderPlotGraph()
-    this.renderHistogram('x')
-    this.renderHistogram('y')
+    // this.renderPlotGraph()
+    // this.renderHistogram('x')
+    // this.renderHistogram('y')
   }
 
   componentDidUpdate(prevProps, prevState) {
-    d3.selectAll("svg").remove()
+    // d3.selectAll("svg").remove()
     if (prevState.xSelector !== this.state.xSelector || 
       prevState.ySelector !== this.state.ySelector ) {
-      this.renderPlotGraph()
-      this.renderHistogram('x')
-      this.renderHistogram('y')
+      // this.renderPlotGraph()
+      // this.renderHistogram('x')
+      // this.renderHistogram('y')
     } 
   }
 
@@ -79,10 +80,10 @@ class App extends Component {
     const width = d3.select(targetClass).node().getBoundingClientRect().width
     const margin = ({top: 20, right: 20, bottom: 30, left: 40})
 
-    // Create D3 template
+    // D3 template
     const svg = d3.select(targetClass).append("svg").classed("AxisSelector__Svg", true).attr('width', width).attr('height', height)
 
-    // Filter Data array for histogram
+    // Filtered Data array for histogram
     const dataArr = data.map(obj => obj[axisSelection])
 
     // X-axis Linear Scale
@@ -124,72 +125,25 @@ class App extends Component {
         .attr("height", d => y(0) - y(d.length));
   }
 
-  renderPlotGraph = () => {
-    const { data, xSelector, ySelector } = this.state
-
-    // CSS data for D3
-    const height = 300
-    const width = d3.select(".App__PlotGraph").node().getBoundingClientRect().width
-    const margin = ({top: 20, right: 30, bottom: 30, left: 40})
-
-    // Append SVG to target
-    const svg = d3.select(".App__PlotGraph").append("svg").attr("width", width).attr("height", height);
-
-
-    // x-axis linear scale
-    const x = d3.scaleLinear()
-      .domain(d3.extent(data, d => d[xSelector]))
-      .range([margin.left, width - margin.right])
-    
-    // y-axis linear scale
-    const y = d3.scaleLinear()
-      .domain(d3.extent(data, d => d[ySelector])).nice()
-      .range([height - margin.bottom, margin.top])
-    
-    // X-axis positioning
-    const xAxis = g => g
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(d3.axisBottom(x))
-    
-    // Y-axis positioning
-    const yAxis = g => g
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(d3.axisLeft(y))
-
-    // Append d3 data to DOM
-    svg.append("g").call(xAxis);
-    svg.append("g").call(yAxis);
-    svg.append("g")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
-        .attr("fill", "none")
-      .selectAll("circle")
-      .data(data)
-      .enter().append("circle")
-        .attr("cx", d => x(d[xSelector]))
-        .attr("cy", d => y(d[ySelector]))
-        .attr("r", 2);
-  }
-
   updateAxisSelection = (e, axis) => {
     if (axis === 'x') this.setState({ xSelector: e.value })
     if (axis === 'y') this.setState({ ySelector: e.value })
   }
   
   render() {
-    const { columns, xSelector, ySelector } = this.state
+    const { data, columns, xSelector, ySelector } = this.state
     return (
       <div className="App">
         <h1>Exoplanet Data Explorer</h1>
         <div className="App__AxisSelectionContainer">
-          <AxisSelector columns={columns} update={this.updateAxisSelection} axis='x' title='X-Axis' value={xSelector} />
-          <AxisSelector columns={columns} update={this.updateAxisSelection} axis='y' title='Y-Axis' value={ySelector} />
+          <AxisSelector columns={columns} update={this.updateAxisSelection} axis='x' title='X-Axis' value={xSelector} data={data} />
+          <AxisSelector columns={columns} update={this.updateAxisSelection} axis='y' title='Y-Axis' value={ySelector} data={data} />
         </div>
         <div className="App__MainContent">
           <h3 className="App__GraphTitle">
             {this.state.xSelector} vs {this.state.ySelector}
           </h3>
-          <div className="App__PlotGraph" />
+          <PlotGraph data={data} xSelector={xSelector} ySelector={ySelector} />
         </div>
       </div>
     );
