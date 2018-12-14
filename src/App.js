@@ -17,6 +17,9 @@ class App extends Component {
   }
 
   componentWillMount() {
+    const filteredColumns = {}
+
+    // Load and Parse CSV data
     d3.csv(csvData, (row) => {
       const keys = Object.keys(row)
       keys.forEach(column => {
@@ -28,13 +31,13 @@ class App extends Component {
         // Checks string with numbers and exponentials, including spaces
         if (/^[ -+.0-9e-]+$/.test(row[column])) {
           row[column] = parseFloat(row[column])
+          filteredColumns[column] = true
         }
       })
       return row
     }).then(result => {
-      console.log('result', result.columns.indexOf('P. Omega (deg)'))
       this.setState({
-        columns: result.columns,
+        columns: Object.keys(filteredColumns),
         data: result,
         xSelector: result.columns[32],
         ySelector: result.columns[11]
@@ -71,16 +74,15 @@ class App extends Component {
       targetClass = ".AxisSelector__yHistogram"
       axisSelection = ySelector
     }
-
     // CSS data for D3
     const height = 100
-    const width = d3.select(targetClass).node().getBoundingClientRect().width -100
+    const width = d3.select(targetClass).node().getBoundingClientRect().width
     const margin = ({top: 20, right: 20, bottom: 30, left: 40})
 
     // Create D3 template
     const svg = d3.select(targetClass).append("svg").classed("AxisSelector__Svg", true).attr('width', width).attr('height', height)
 
-    // Filter Data array
+    // Filter Data array for histogram
     const dataArr = data.map(obj => obj[axisSelection])
 
     // X-axis Linear Scale
@@ -98,15 +100,17 @@ class App extends Component {
       .domain([0, d3.max(bins, d => d.length)]).nice()
       .range([height - margin.bottom, margin.top])
     
+    // X-axis Positioning
     const xAxis = g => g
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(x).tickSizeOuter(0))
     
+    // Y-axis Positioning
     const yAxis = g => g
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(y))
 
-    // Append nodes to DOM
+    // Append d3 data to DOM
     svg.append("g")
       .call(xAxis);
     svg.append("g")
@@ -152,6 +156,7 @@ class App extends Component {
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(y))
 
+    // Append d3 data to DOM
     svg.append("g").call(xAxis);
     svg.append("g").call(yAxis);
     svg.append("g")
