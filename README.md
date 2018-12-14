@@ -1,3 +1,14 @@
+#Exoplanet Data Explorer
+Built using React and D3
+
+To get started...
+`npm i` to install dependencies
+`npm start` to run the app
+
+
+
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
