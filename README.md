@@ -1,4 +1,4 @@
-#Exoplanet Data Explorer
+# Exoplanet Data Explorer
 Built using React and D3
 
 To get started...
